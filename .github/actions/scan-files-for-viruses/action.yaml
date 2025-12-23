@@ -49,10 +49,9 @@ runs:
       shell: bash
       run: |
         set -x
-        sudo apt-get update -q
-        sudo apt-get install -y clamav clamav-daemon
+        sudo apt-get update -qq
+        sudo apt-get install -y -qq clamav clamav-daemon
         sudo systemctl stop clamav-freshclam || true
-        # sudo freshclam --verbose
         sudo freshclam
 
     - name: Scan files for viruses
