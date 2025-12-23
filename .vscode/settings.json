@@ -6,8 +6,10 @@
         "elif",
         "freshclam",
         "isfile",
+        "isinstance",
         "nullglob",
         "shopt",
+        "splitlines",
         "tonumber",
         "tostring"
     ]
