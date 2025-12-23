@@ -1,6 +1,6 @@
-name: "Delete Old Pre-Releases"
+name: "Cleanup Old Pre-Releases"
 description: >-
-  Deletes old pre-releases while preserving all stable releases, drafts,
+  Cleanup old pre-releases while preserving all stable releases, drafts,
   and the most recent pre-releases. Configured to keep the newest 5 pre-releases
   (excluding the latest) and delete associated tags.
 runs:
