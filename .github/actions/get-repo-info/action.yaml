@@ -1,18 +1,19 @@
 name: "Get Repository Branch and Commit"
 description: >-
   Determines the current branch name and commit SHA (full hash) of the Git
-  repository located at the specified directory. Exports both values as
-  configurable environment variables for use in subsequent steps.
+  repository located at the specified directory. Exports the values as
+  configurable environment variables if the corresponding variable names
+  are provided.
 inputs:
   repo-dir:
     description: "The path to the repository directory (relative to the workspace)."
     required: true
   branch-var:
-    description: "The name of the environment variable to set with the current branch name."
-    required: true
+    description: "The name of the environment variable to set with the current branch name (optional)."
+    required: false
   commit-var:
-    description: "The name of the environment variable to set with the full commit SHA."
-    required: true
+    description: "The name of the environment variable to set with the full commit SHA (optional)."
+    required: false
 runs:
   using: "composite"
   steps:
@@ -20,14 +21,6 @@ runs:
       shell: bash
       run: |
         repo_dir="${{ inputs.repo-dir }}"
-        branch_var="${{ inputs.branch-var }}"
-        commit_var="${{ inputs.commit-var }}"
-
-        # Validate inputs
-        if [[ -z "$branch_var" || -z "$commit_var" ]]; then
-          echo "Error: Both branch-var and commit-var inputs are required and must be non-empty."
-          exit 1
-        fi
 
         # Validate repository directory
         if [[ ! -d "$repo_dir" ]]; then
@@ -50,8 +43,15 @@ runs:
         commit=$(git -C "$repo_dir" rev-parse HEAD)
 
         echo "Repository in '$repo_dir': branch='$branch', commit='$commit'"
-        echo "Setting $branch_var=$branch"
-        echo "Setting $commit_var=$commit"
 
-        echo "$branch_var=$branch" >> "$GITHUB_ENV"
-        echo "$commit_var=$commit" >> "$GITHUB_ENV"
+        # Set branch variable if name is provided
+        if [[ -n "${{ inputs.branch-var }}" ]]; then
+          echo "Setting ${{ inputs.branch-var }}=$branch"
+          echo "${{ inputs.branch-var }}=$branch" >> "$GITHUB_ENV"
+        fi
+
+        # Set commit variable if name is provided
+        if [[ -n "${{ inputs.commit-var }}" ]]; then
+          echo "Setting ${{ inputs.commit-var }}=$commit"
+          echo "${{ inputs.commit-var }}=$commit" >> "$GITHUB_ENV"
+        fi
