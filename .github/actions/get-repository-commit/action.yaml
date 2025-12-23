@@ -7,9 +7,7 @@ inputs:
   repo-dir:
     description: >-
       The path to the repository directory (relative to the workspace).
-      Defaults to the current directory (.) if not specified.
-    required: false
-    default: "."
+    required: true
   env-var-name:
     description: "The name of the environment variable to set with the commit hash."
     required: true
@@ -28,6 +26,11 @@ runs:
           exit 1
         fi
 
+        if [[ -z "$repo_dir" ]]; then
+          echo "Error: Repository directory path cannot be empty."
+          exit 1
+        fi
+
         # Validate repository directory
         if [[ ! -d "$repo_dir" ]]; then
           echo "Error: Specified repository directory '$repo_dir' does not exist."
@@ -41,5 +44,5 @@ runs:
 
         commit=$(git -C "$repo_dir" rev-parse HEAD)
         echo "Repository commit in '$repo_dir': $commit"
-        echo "$var_name=$commit"
+        echo "Setting environment variable $var_name=$commit"
         echo "$var_name=$commit" >> $GITHUB_ENV
