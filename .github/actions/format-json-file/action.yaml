@@ -1,0 +1,29 @@
+name: "Format JSON File In-Place"
+description: >-
+  Installs the json-align tool globally and formats the specified JSON file
+  in-place with consistent 2-space indentation. Displays the formatted file
+  content with line numbers for verification.
+inputs:
+  json-file:
+    description: "The path to the JSON file to format (relative to the workspace)."
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Install json-align tool
+      shell: bash
+      run: npm install -g json-align
+
+    - name: Format JSON file in-place
+      shell: bash
+      run: |
+        file="${{ inputs.json-file }}"
+        if [[ ! -f "$file" ]]; then
+          echo "Error: JSON file '$file' not found."
+          exit 1
+        fi
+
+        json-align --in-place --spaces 2 "$file"
+        echo "Formatted JSON file: $file"
+        cat -n "$file"
+
