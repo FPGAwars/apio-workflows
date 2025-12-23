@@ -45,6 +45,8 @@ runs:
 
         echo "Patterns validation successful."
 
+    # Repo: https://github.com/Cisco-Talos/clamav
+    # Home: https://www.clamav.net/
     - name: Install antivirus tool and update virus database
       shell: bash
       run: |
@@ -54,6 +56,10 @@ runs:
         sudo systemctl stop clamav-freshclam || true
         sudo freshclam
 
+    # Scans recursively inside the .tgz packages.
+    # See : https://linux.die.net/man/1/clamscan
+    # To check a suspected file for viruses upload to
+    # https://www.virustotal.com/gui/home/upload
     - name: Scan files for viruses
       shell: bash
       run: |
