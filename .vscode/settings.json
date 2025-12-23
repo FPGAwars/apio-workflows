@@ -3,6 +3,8 @@
         "clamav",
         "clamscan",
         "elif",
-        "freshclam"
+        "freshclam",
+        "nullglob",
+        "shopt"
     ]
 }
