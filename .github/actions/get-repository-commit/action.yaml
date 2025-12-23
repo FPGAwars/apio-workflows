@@ -1,0 +1,45 @@
+name: "Get Repository Commit"
+description: >-
+  Determines the current Git commit hash (full SHA) of a specified repository
+  directory using 'git rev-parse HEAD' and exports it as a configurable
+  environment variable for use in subsequent steps.
+inputs:
+  repo-dir:
+    description: >-
+      The path to the repository directory (relative to the workspace).
+      Defaults to the current directory (.) if not specified.
+    required: false
+    default: "."
+  env-var-name:
+    description: "The name of the environment variable to set with the commit hash."
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Get repository commit
+      shell: bash
+      run: |
+        repo_dir="${{ inputs.repo-dir }}"
+        var_name="${{ inputs.env-var-name }}"
+
+        # Validate inputs
+        if [[ -z "$var_name" ]]; then
+          echo "Error: Environment variable name cannot be empty."
+          exit 1
+        fi
+
+        # Validate repository directory
+        if [[ ! -d "$repo_dir" ]]; then
+          echo "Error: Specified repository directory '$repo_dir' does not exist."
+          exit 1
+        fi
+
+        if ! git -C "$repo_dir" rev-parse --git-dir >/dev/null 2>&1; then
+          echo "Error: '$repo_dir' is not a valid Git repository."
+          exit 1
+        fi
+
+        commit=$(git -C "$repo_dir" rev-parse HEAD)
+        echo "Repository commit in '$repo_dir': $commit"
+        echo "$var_name=$commit"
+        echo "$var_name=$commit" >> $GITHUB_ENV
