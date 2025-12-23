@@ -16,15 +16,7 @@ runs:
     - name: Check operating system and architecture
       shell: bash
       run: |
-        # For cross platform debugging.
-        set -x
-        uname || true
-        uname -o || true
-        uname -s || true
-        uname -n || true
-        uname -p || true
-        uname -r || true
-        uname -v || true
+
 
         required_os="${{ inputs.os }}"
         required_arch="${{ inputs.arch }}"
@@ -33,27 +25,27 @@ runs:
         detected_arch="$(uname -m)"
 
         # Convert to lowercase using portable tr
-        detected_os_lower=$(echo "$detected_os" | tr '[:upper:]' '[:lower:]')
-        required_os_lower=$(echo "$required_os" | tr '[:upper:]' '[:lower:]')
-        detected_arch_lower=$(echo "$detected_arch" | tr '[:upper:]' '[:lower:]')
-        required_arch_lower=$(echo "$required_arch" | tr '[:upper:]' '[:lower:]')
+        detected_os_lc=$(echo "$detected_os" | tr '[:upper:]' '[:lower:]')
+        required_os_lc=$(echo "$required_os" | tr '[:upper:]' '[:lower:]')
+        detected_arch_lc=$(echo "$detected_arch" | tr '[:upper:]' '[:lower:]')
+        required_arch_lc=$(echo "$required_arch" | tr '[:upper:]' '[:lower:]')
 
-        echo "Detected OS: $detected_os"
-        echo "Detected architecture: $detected_arch"
-        echo "Required OS: $required_os"
-        echo "Required architecture: $required_arch"
+        echo "Detected OS: $detected_os_lc"
+        echo "Detected architecture: $detected_arch_lc"
+        echo "Required OS: $required_os_lc"
+        echo "Required architecture: $required_arch_lc"
 
         # Separate check for OS (case-insensitive substring match)
-        if [[ ! "$detected_os_lower" == *"$required_os_lower"* ]]; then
-          echo "Error: This workflow requires OS containing '$required_os_lower'."
-          echo "Current OS='$detected_os_lower'"
+        if [[ ! "$detected_os_lc" == *"$required_os_lc"* ]]; then
+          echo "Error: This workflow requires OS containing '$required_os_lc'."
+          echo "Current OS='$detected_os_lc'"
           exit 1
         fi
 
         # Separate check for architecture (case-insensitive exact match)
-        if [[ "$detected_arch_lower" != "$required_arch_lower" ]]; then
-          echo "Error: This workflow requires architecture='$required_arch_lower'."
-          echo "Current architecture='$detected_arch_lower'"
+        if [[ "$detected_arch_lc" != "$required_arch_lc" ]]; then
+          echo "Error: This workflow requires architecture='$required_arch_lc'."
+          echo "Current architecture='$detected_arch_lc'"
           exit 1
         fi
 
