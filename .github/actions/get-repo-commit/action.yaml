@@ -43,6 +43,5 @@ runs:
         fi
 
         commit=$(git -C "$repo_dir" rev-parse HEAD)
-        echo "Repository commit in '$repo_dir': $commit"
-        echo "Setting environment variable $var_name=$commit"
+        echo "$var_name=$commit"
         echo "$var_name=$commit" >> $GITHUB_ENV
