@@ -34,10 +34,9 @@ runs:
 
         # -- Get the value of the __version__ consts.
         apio_version = apio_module.__version__
-        print(f"Extracted Apio version: {apio_version}")
 
         # -- Append to workflow env file.
-        print(f"Setting environment variable {var_name}={apio_version}")
         with open(os.environ["GITHUB_ENV"], "a") as env_file:
+            print(f"{var_name}={apio_version}")
             print(f"{var_name}={apio_version}", file=env_file)
 
