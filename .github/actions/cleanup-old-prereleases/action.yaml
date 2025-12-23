@@ -1,0 +1,19 @@
+name: "Cleanup Old Pre-Releases"
+description: >-
+  Cleanup old pre-releases while preserving all stable releases, drafts,
+  and the most recent pre-releases. Configured to keep the newest 5 pre-releases
+  (excluding the latest) and delete associated tags.
+runs:
+  using: "composite"
+  steps:
+    - name: Delete old pre-releases
+      uses: sgpublic/delete-release-action@v1.2
+      with:
+        release-drop: false          # Keep all stable releases
+        pre-release-drop: true       # Delete old pre-releases
+        pre-release-keep-count: 5    # Keep the newest 5 (excluding the absolute latest)
+        pre-release-drop-tag: true   # Delete tags of removed pre-releases
+        draft-drop: false            # Keep all drafts
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+
