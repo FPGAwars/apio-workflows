@@ -1,0 +1,38 @@
+name: "Convert JSON to Aligned Text"
+description: >-
+  Converts a simple key-value JSON object to a formatted text file
+  with aligned columns (key : value). Keys are preserved in their original order
+  from the JSON file for consistency with the source.
+inputs:
+  input-json:
+    description: "Path to the input JSON file containing key-value pairs."
+    required: true
+  output-text:
+    description: "Path to the output text file to create."
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Convert JSON to aligned text (preserving key order)
+      shell: bash
+      run: |
+        input_file="${{ inputs.input-json }}"
+        output_file="${{ inputs.output-text }}"
+
+        # Validate input file
+        if [[ ! -f "$input_file" ]]; then
+          echo "Error: Input JSON file '$input_file' not found."
+          exit 1
+        fi
+
+        # Determine maximum key length for alignment
+        max_key_length=$(jq -r 'keys_unsorted[] | length' "$input_file" | sort -nr | head -n1 || echo 0)
+
+        # Generate aligned text preserving original key order
+        jq -r 'to_entries
+               | .[]
+               | .key + " " + (" " * ($max_key_length - (.key | length) + 3)) + ": " + (.value | tostring)' \
+          "$input_file" > "$output_file"
+
+        echo "Converted '$input_file' to aligned text in '$output_file' (keys in original order)"
+        cat -n "$output_file"
