@@ -1,0 +1,38 @@
+name: "Check Platform"
+description: >-
+  Verifies that the workflow is running on the specified operating system
+  and architecture (case-insensitive comparison). Fails the workflow with
+  a clear error message if the conditions are not met.
+inputs:
+  os:
+    description: "The required operating system (e.g., 'Darwin' for macOS, 'Linux' for Linux)."
+    required: true
+  arch:
+    description: "The required architecture (e.g., 'arm64', 'x86_64')."
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Check operating system and architecture
+      shell: bash
+      run: |
+        required_os="${{ inputs.os }}"
+        required_arch="${{ inputs.arch }}"
+
+        detected_os="$(uname)"
+        detected_arch="$(uname -m)"
+
+        echo "Detected OS: $detected_os"
+        echo "Detected architecture: $detected_arch"
+        echo "Required OS: $required_os"
+        echo "Required architecture: $required_arch"
+
+        # Case-insensitive comparison
+        if [[ "${detected_os,,}" != "${required_os,,}" || "${detected_arch,,}" != "${required_arch,,}" ]]; then
+          echo "Error: This workflow requires OS='$required_os' and architecture='$required_arch'."
+          echo "Current: OS='$detected_os', Architecture='$detected_arch'"
+          exit 1
+        fi
+
+        echo "Platform check passed: $detected_os $detected_arch"
+
