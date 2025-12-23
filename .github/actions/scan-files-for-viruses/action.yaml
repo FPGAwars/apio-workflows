@@ -1,0 +1,30 @@
+name: "Scan Files for Viruses"
+description: >-
+  Installs an antivirus tool on Ubuntu runners, updates its virus database,
+  and recursively scans specified files for viruses.
+inputs:
+  file-patterns:
+    description: "Space-separated glob patterns for the files to scan (relative to the workspace). Multiple patterns are supported."
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Install antivirus tool and update virus database
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clamav clamav-daemon
+        sudo systemctl stop clamav-freshclam || true
+        sudo freshclam --verbose
+
+    - name: Scan files for viruses
+      shell: bash
+      run: |
+        patterns="${{ inputs.file-patterns }}"
+        if [[ -z "$patterns" ]]; then
+          echo "Error: No file patterns provided."
+          exit 1
+        fi
+
+        echo "Scanning files matching patterns: $patterns"
+        clamscan -r --verbose --scan-archive=yes $patterns
