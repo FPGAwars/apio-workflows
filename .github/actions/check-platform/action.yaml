@@ -16,6 +16,16 @@ runs:
     - name: Check operating system and architecture
       shell: bash
       run: |
+        # For cross platform debugging.
+        set -x
+        uname || true
+        uname -o || true
+        uname -s || true
+        uname -n || true
+        uname -p || true
+        uname -r || true
+        uname -v || true
+
         required_os="${{ inputs.os }}"
         required_arch="${{ inputs.arch }}"
 
