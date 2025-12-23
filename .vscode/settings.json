@@ -5,6 +5,7 @@
         "clamscan",
         "elif",
         "freshclam",
+        "isfile",
         "nullglob",
         "shopt"
     ]

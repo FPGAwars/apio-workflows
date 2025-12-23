@@ -1,0 +1,43 @@
+name: "Get Apio Version from apio repo"
+description: >-
+  Dynamically imports the apio/__init__.py file from the specified repository
+  root directory and extracts the __version__ string (e.g., "1.1.0").
+  Exports it as a configurable environment variable for use in subsequent steps.
+inputs:
+  apio-repo-root:
+    description: "The path to the repository root directory containing the apio package (e.g., apio-repo)."
+    required: true
+  env-var-name:
+    description: "The name of the environment variable to set with the Apio version."
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Extract Apio version and set environment variable
+      shell: python
+      run: |
+        import importlib.util
+        import os
+
+        # -- Import apio/__init__.py
+        repo_root = "${{ inputs.apio-repo-root }}"
+        var_name = "${{ inputs.env-var-name }}"
+
+        init_path = os.path.join(repo_root, "apio", "__init__.py")
+
+        if not os.path.isfile(init_path):
+            raise FileNotFoundError(f"Error: __init__.py not found at '{init_path}'")
+
+        spec = importlib.util.spec_from_file_location("apio", init_path)
+        apio_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(apio_module)
+
+        # -- Get the value of the __version__ consts.
+        apio_version = apio_module.__version__
+        print(f"Extracted Apio version: {apio_version}")
+
+        # -- Append to workflow env file.
+        print(f"Setting environment variable {var_name}={apio_version}")
+        with open(os.environ["GITHUB_ENV"], "a") as env_file:
+            print(f"{var_name}={apio_version}", file=env_file)
+
