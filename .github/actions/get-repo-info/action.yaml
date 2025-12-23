@@ -42,16 +42,14 @@ runs:
         # Get full commit SHA
         commit=$(git -C "$repo_dir" rev-parse HEAD)
 
-        echo "Repository in '$repo_dir': branch='$branch', commit='$commit'"
-
         # Set branch variable if name is provided
         if [[ -n "${{ inputs.branch-var }}" ]]; then
-          echo "Setting ${{ inputs.branch-var }}=$branch"
+          echo "${{ inputs.branch-var }}=$branch"
           echo "${{ inputs.branch-var }}=$branch" >> "$GITHUB_ENV"
         fi
 
         # Set commit variable if name is provided
         if [[ -n "${{ inputs.commit-var }}" ]]; then
-          echo "Setting ${{ inputs.commit-var }}=$commit"
+          echo "${{ inputs.commit-var }}=$commit"
           echo "${{ inputs.commit-var }}=$commit" >> "$GITHUB_ENV"
         fi
