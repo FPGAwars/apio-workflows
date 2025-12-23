@@ -1,0 +1,27 @@
+name: "Get Release and Package Tags"
+description: >-
+  Generates a daily release tag in YYYY-MM-DD format (e.g., "2025-12-22")
+  and a corresponding package tag with dashes removed (e.g., "20251222").
+  Exports both as configurable environment variables for use in subsequent steps.
+inputs:
+  release-tag-var:
+    description: "The name of the environment variable to set for the release tag (YYYY-MM-DD format)."
+    required: true
+  package-tag-var:
+    description: "The name of the environment variable to set for the package tag (YYYYMMDD format)."
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Get release and package tags
+      shell: bash
+      run: |
+        release_tag="$(date +'%Y-%m-%d')"
+        package_tag="${release_tag//-/}"
+
+        echo "${{ inputs.release-tag-var }}=$release_tag"
+        echo "${{ inputs.package-tag-var }}=$package_tag"
+
+        # Set configurable environment variables
+        echo "${{ inputs.release-tag-var }}=$release_tag" >> $GITHUB_ENV
+        echo "${{ inputs.package-tag-var }}=$package_tag" >> $GITHUB_ENV
