@@ -51,7 +51,8 @@ runs:
         sudo apt-get update
         sudo apt-get install -y clamav clamav-daemon
         sudo systemctl stop clamav-freshclam || true
-        sudo freshclam --verbose
+        # sudo freshclam --verbose
+        sudo freshclam
 
     - name: Scan files for viruses
       shell: bash
@@ -59,4 +60,5 @@ runs:
         patterns="${{ inputs.file-patterns }}"
 
         echo "Scanning files with patterns: $patterns"
-        clamscan -r --verbose --scan-archive=yes $patterns
+        # clamscan -r --verbose --scan-archive=yes $patterns
+        clamscan -r --scan-archive=yes $patterns
