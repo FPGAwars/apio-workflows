@@ -29,7 +29,7 @@ runs:
         required_os="${{ inputs.os }}"
         required_arch="${{ inputs.arch }}"
 
-        detected_os="$(uname)"
+        detected_os="$(uname -o)"
         detected_arch="$(uname -m)"
 
         # Convert to lowercase using portable tr
@@ -43,10 +43,17 @@ runs:
         echo "Required OS: $required_os"
         echo "Required architecture: $required_arch"
 
-        # Case-insensitive comparison
-        if [[ "$detected_os_lower" != "$required_os_lower" || "$detected_arch_lower" != "$required_arch_lower" ]]; then
-          echo "Error: This workflow requires OS='$required_os_lower' and architecture='$required_arch_lower'."
-          echo "Current: OS='$detected_os_lower', Architecture='$detected_arch_lower'"
+        # Separate check for OS (case-insensitive substring match)
+        if [[ ! "$detected_os_lower" == *"$required_os_lower"* ]]; then
+          echo "Error: This workflow requires OS containing '$required_os_lower'."
+          echo "Current OS='$detected_os_lower'"
+          exit 1
+        fi
+
+        # Separate check for architecture (case-insensitive exact match)
+        if [[ "$detected_arch_lower" != "$required_arch_lower" ]]; then
+          echo "Error: This workflow requires architecture='$required_arch_lower'."
+          echo "Current architecture='$detected_arch_lower'"
           exit 1
         fi
 
