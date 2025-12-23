@@ -1,0 +1,57 @@
+name: "Get Repository Branch and Commit"
+description: >-
+  Determines the current branch name and commit SHA (full hash) of the Git
+  repository located at the specified directory. Exports both values as
+  configurable environment variables for use in subsequent steps.
+inputs:
+  repo-dir:
+    description: "The path to the repository directory (relative to the workspace)."
+    required: true
+  branch-var:
+    description: "The name of the environment variable to set with the current branch name."
+    required: true
+  commit-var:
+    description: "The name of the environment variable to set with the full commit SHA."
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Get branch and commit from repository
+      shell: bash
+      run: |
+        repo_dir="${{ inputs.repo-dir }}"
+        branch_var="${{ inputs.branch-var }}"
+        commit_var="${{ inputs.commit-var }}"
+
+        # Validate inputs
+        if [[ -z "$branch_var" || -z "$commit_var" ]]; then
+          echo "Error: Both branch-var and commit-var inputs are required and must be non-empty."
+          exit 1
+        fi
+
+        # Validate repository directory
+        if [[ ! -d "$repo_dir" ]]; then
+          echo "Error: Specified repository directory '$repo_dir' does not exist."
+          exit 1
+        fi
+
+        if ! git -C "$repo_dir" rev-parse --git-dir >/dev/null 2>&1; then
+          echo "Error: '$repo_dir' is not a valid Git repository."
+          exit 1
+        fi
+
+        # Get current branch name (or "detached" if in detached HEAD state)
+        branch=$(git -C "$repo_dir" rev-parse --abbrev-ref HEAD)
+        if [[ "$branch" == "HEAD" ]]; then
+          branch="detached"
+        fi
+
+        # Get full commit SHA
+        commit=$(git -C "$repo_dir" rev-parse HEAD)
+
+        echo "Repository in '$repo_dir': branch='$branch', commit='$commit'"
+        echo "Setting $branch_var=$branch"
+        echo "Setting $commit_var=$commit"
+
+        echo "$branch_var=$branch" >> "$GITHUB_ENV"
+        echo "$commit_var=$commit" >> "$GITHUB_ENV"
