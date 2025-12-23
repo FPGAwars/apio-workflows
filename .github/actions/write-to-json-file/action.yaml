@@ -1,0 +1,45 @@
+name: "Write to JSON File"
+description: >-
+  Adds or updates a key-value pair in a specified JSON file in-place.
+  The file is modified directly on disk using a temporary file for atomicity.
+  Note: This operation may alter the existing JSON formatting (e.g., indentation,
+  ordering). The file may need to be reformatted afterward if consistent
+  pretty-printing is required.
+inputs:
+  json-file:
+    description: "The path to the JSON file to modify (relative to the workspace)."
+    required: true
+  key:
+    description: "The JSON object key to add or update."
+    required: true
+  value:
+    description: "The value to assign to the key (as a JSON-compatible string)."
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Write key-value pair to JSON file
+      shell: bash
+      run: |
+        json_file="${{ inputs.json-file }}"
+        key="${{ inputs.key }}"
+        value="${{ inputs.value }}"
+
+        # Validate inputs
+        if [[ -z "$json_file" || -z "$key" || -z "$value" ]]; then
+          echo "Error: json-file, key, and value inputs are required and must be non-empty."
+          exit 1
+        fi
+
+        if [[ ! -f "$json_file" ]]; then
+          echo "Error: JSON file '$json_file' not found."
+          exit 1
+        fi
+
+        # Add or update the key with the provided value
+        # Note: This may alter the existing JSON formatting (e.g., indentation, ordering).
+        # The file may need to be reformatted afterward if consistent pretty-printing is required.
+        jq --arg k "$key" --arg v "$value" '.[$k] = $v' "$json_file" > tmp.json && mv tmp.json "$json_file"
+
+        echo "Updated '$json_file' with key '$key' = '$value'"
+        cat -n "$json_file"
