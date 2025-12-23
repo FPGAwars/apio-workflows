@@ -9,6 +9,42 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Validate file patterns exist
+      shell: bash
+      run: |
+        patterns="${{ inputs.file-patterns }}"
+
+        if [[ -z "$patterns" ]]; then
+          echo "Error: No file patterns provided."
+          exit 1
+        fi
+
+        # Split patterns into an array (space-separated)
+        IFS=' ' read -ra pattern_array <<< "$patterns"
+
+        matched_any=false
+        for pattern in "${pattern_array[@]}"; do
+          # Enable nullglob so unmatched patterns expand to empty
+          shopt -s nullglob
+          matched_files=($pattern)
+          shopt -u nullglob
+
+          if [[ ${#matched_files[@]} -eq 0 ]]; then
+            echo "Error: Pattern '$pattern' matched no files – possible typo or missing files."
+            exit 1
+          fi
+
+          echo "Pattern '$pattern' matched ${#matched_files[@]} file(s)."
+          matched_any=true
+        done
+
+        if ! $matched_any; then
+          echo "Error: No files matched any of the provided patterns."
+          exit 1
+        fi
+
+        echo "Patterns validation successful."
+
     - name: Install antivirus tool and update virus database
       shell: bash
       run: |
@@ -21,10 +57,6 @@ runs:
       shell: bash
       run: |
         patterns="${{ inputs.file-patterns }}"
-        if [[ -z "$patterns" ]]; then
-          echo "Error: No file patterns provided."
-          exit 1
-        fi
 
-        echo "Scanning files matching patterns: $patterns"
+        echo "Scanning files with patterns: $patterns"
         clamscan -r --verbose --scan-archive=yes $patterns
