@@ -16,36 +16,43 @@ runs:
       run: |
         set -e
 
+        release_tag="${{ inputs.release-tag }}"
+
+        # Validate that release-tag is not empty
+        if [[ -z "$release_tag" ]]; then
+          echo "Error: The release-tag input is empty or not provided."
+          exit 1
+        fi
+
         # Optional: list releases for debugging
         echo "*** Recent 10 releases:"
         gh release list --limit 10
 
         # Attempt to view the release; the not found error exit code.
-        echo "*** Querying release ${{ inputs.release-tag }}:"
-        output=$(gh release view "${{ inputs.release-tag }}" --json name,tagName,isPrerelease 2>&1 || true)
+        echo "*** Querying release $release_tag:"
+        output=$(gh release view "$release_tag" --json name,tagName,isPrerelease 2>&1 || true)
         echo "$output"
 
         echo "*** Processing query results:"
 
         # CASE 1: Release doesn't exist.
         if [[ "$output" == *"release not found"* ]]; then
-          echo "Release ${{ inputs.release-tag }} does not exist – safe to continue."
+          echo "Release $release_tag does not exist – safe to continue."
 
         # CASE 2: The release exists and has 'pre-release' status.
         elif [[ "$(echo "$output" | jq -r '.isPrerelease')" == "true" ]]; then
-          echo "Pre-release ${{ inputs.release-tag }} exists – deleting it."
-          gh release delete "${{ inputs.release-tag }}" --yes --cleanup-tag
+          echo "Pre-release $release_tag exists – deleting it."
+          gh release delete "$release_tag" --yes --cleanup-tag
 
         # CASE 3: The release exists and is stable (no 'pre-release' status)
         elif [[ "$(echo "$output" | jq -r '.isPrerelease')" == "false" ]]; then
-          echo "Error: A stable release already exists for tag ${{ inputs.release-tag }} – aborting to protect it."
+          echo "Error: A stable release already exists for tag $release_tag – aborting to protect it."
           exit 1
 
         # CASE 4: We encountered an error while looking up the release.
         else
-          echo "Error: Unable to determine status of release ${{ inputs.release-tag }}."
+          echo "Error: Unable to determine status of release $release_tag."
           exit 1
         fi
       env:
         GITHUB_TOKEN: ${{ github.token }}
-
