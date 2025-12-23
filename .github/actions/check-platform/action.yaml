@@ -1,0 +1,50 @@
+name: "Check Platform"
+description: >-
+  Verifies that the workflow is running on the specified operating system
+  and architecture (case-insensitive comparison). Fails the workflow with
+  a clear error message if the conditions are not met.
+inputs:
+  os:
+    description: "The required operating system (e.g., 'Darwin' for macOS, 'Linux' for Linux)."
+    required: true
+  arch:
+    description: "The required architecture (e.g., 'arm64', 'x86_64')."
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Check operating system and architecture
+      shell: bash
+      run: |
+        required_os="${{ inputs.os }}"
+        required_arch="${{ inputs.arch }}"
+
+        detected_os="$(uname -o)"
+        detected_arch="$(uname -m)"
+
+        # Convert to lowercase using portable tr
+        detected_os_lc=$(echo "$detected_os" | tr '[:upper:]' '[:lower:]')
+        required_os_lc=$(echo "$required_os" | tr '[:upper:]' '[:lower:]')
+        detected_arch_lc=$(echo "$detected_arch" | tr '[:upper:]' '[:lower:]')
+        required_arch_lc=$(echo "$required_arch" | tr '[:upper:]' '[:lower:]')
+
+        echo "Detected OS: $detected_os_lc"
+        echo "Detected architecture: $detected_arch_lc"
+        echo "Required OS: $required_os_lc"
+        echo "Required architecture: $required_arch_lc"
+
+        # Separate check for OS (case-insensitive substring match)
+        if [[ ! "$detected_os_lc" == *"$required_os_lc"* ]]; then
+          echo "Error: This workflow requires OS containing '$required_os_lc'."
+          echo "Current OS='$detected_os_lc'"
+          exit 1
+        fi
+
+        # Separate check for architecture (case-insensitive exact match)
+        if [[ "$detected_arch_lc" != "$required_arch_lc" ]]; then
+          echo "Error: This workflow requires architecture='$required_arch_lc'."
+          echo "Current architecture='$detected_arch_lc'"
+          exit 1
+        fi
+
+        echo "Platform check passed: $detected_os $detected_arch"

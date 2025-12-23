@@ -1,0 +1,64 @@
+name: "Set Environment Variables from JSON"
+description: >-
+  Reads a specified JSON file and extracts values for given keys.
+  Sets each extracted value as a configurable environment variable
+  in the workflow for use in subsequent steps.
+  Fails if any specified key is missing from the JSON (even if the value would be an empty string).
+inputs:
+  json-file:
+    description: "The path to the JSON file (relative to the workspace)."
+    required: true
+  mappings:
+    description: >-
+      Space-separated list of "ENV_VAR_NAME json_key" pairs.
+      Each pair defines an environment variable name and the corresponding
+      JSON property key to extract.
+      Example: "APIO_REPO apio-repo APIO_COMMIT apio-commit"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Set environment variables from JSON
+      shell: bash
+      run: |
+        json_file="${{ inputs.json-file }}"
+        mappings="${{ inputs.mappings }}"
+
+        # Check if the specified JSON file exists
+        if [[ ! -f "$json_file" ]]; then
+          echo "Error: JSON file '$json_file' not found."
+          exit 1
+        fi
+
+        # Check if mappings input is provided
+        if [[ -z "$mappings" ]]; then
+          echo "Error: No mappings provided."
+          exit 1
+        fi
+
+        # Split mappings into array
+        IFS=' ' read -ra mapping_array <<< "$mappings"
+
+        # Process each "ENV_VAR_NAME json_key" pair
+        for ((i=0; i<${#mapping_array[@]}; i+=2)); do
+          var_name="${mapping_array[i]}"
+          json_key="${mapping_array[i+1]}"
+
+          # Validate that both variable name and JSON key are non-empty
+          if [[ -z "$var_name" || -z "$json_key" ]]; then
+            echo "Error: Invalid mapping pair at index $i – both variable name and key must be non-empty."
+            exit 1
+          fi
+
+          # Extract value; jq outputs "null" if key is missing
+          value=$(jq -r --arg k "$json_key" '.[$k]' "$json_file")
+
+          # Fail if the key is missing (jq returns "null")
+          if [[ "$value" == "null" ]]; then
+            echo "Error: Required key '$json_key' is missing in '$json_file'."
+            exit 1
+          fi
+
+          echo "Setting $var_name=$value"
+          echo "$var_name=$value" >> "$GITHUB_ENV"
+        done

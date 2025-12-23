@@ -1,0 +1,69 @@
+name: "Scan Files for Viruses"
+description: >-
+  Installs an antivirus tool on Ubuntu runners, updates its virus database,
+  and recursively scans specified files for viruses.
+inputs:
+  file-patterns:
+    description: "Space-separated glob patterns for the files to scan (relative to the workspace). Multiple patterns are supported."
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Validate file patterns exist
+      shell: bash
+      run: |
+        patterns="${{ inputs.file-patterns }}"
+
+        if [[ -z "$patterns" ]]; then
+          echo "Error: No file patterns provided."
+          exit 1
+        fi
+
+        # Split patterns into an array (space-separated)
+        IFS=' ' read -ra pattern_array <<< "$patterns"
+
+        matched_any=false
+        for pattern in "${pattern_array[@]}"; do
+          # Enable nullglob so unmatched patterns expand to empty
+          shopt -s nullglob
+          matched_files=($pattern)
+          shopt -u nullglob
+
+          if [[ ${#matched_files[@]} -eq 0 ]]; then
+            echo "Error: Pattern '$pattern' matched no files – possible typo or missing files."
+            exit 1
+          fi
+
+          echo "Pattern '$pattern' matched ${#matched_files[@]} file(s)."
+          matched_any=true
+        done
+
+        if ! $matched_any; then
+          echo "Error: No files matched any of the provided patterns."
+          exit 1
+        fi
+
+        echo "Patterns validation successful."
+
+    # Repo: https://github.com/Cisco-Talos/clamav
+    # Home: https://www.clamav.net/
+    - name: Install antivirus tool and update virus database
+      shell: bash
+      run: |
+        set -x
+        sudo apt-get update -qq
+        sudo apt-get install -y -qq clamav clamav-daemon
+        sudo systemctl stop clamav-freshclam || true
+        sudo freshclam
+
+    # Scans recursively inside the .tgz packages.
+    # See : https://linux.die.net/man/1/clamscan
+    # To check a suspected file for viruses upload to
+    # https://www.virustotal.com/gui/home/upload
+    - name: Scan files for viruses
+      shell: bash
+      run: |
+        patterns="${{ inputs.file-patterns }}"
+        echo "Scanning files with patterns: $patterns"
+        # clamscan -r --verbose --scan-archive=yes $patterns
+        clamscan -r --scan-archive=yes $patterns

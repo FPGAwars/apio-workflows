@@ -1,0 +1,53 @@
+name: "Convert JSON to Aligned Text"
+description: >-
+  Converts a simple key-value JSON object to a human-readable text file
+  with aligned columns (key : value). Keys are preserved in their original order
+  from the JSON file. Values are rendered as plain strings without quotes.
+inputs:
+  input-json:
+    description: "Path to the input JSON file containing key-value pairs."
+    required: true
+  output-text:
+    description: "Path to the output text file to create."
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Convert JSON to aligned human-readable text
+      shell: python
+      run: |
+        import json
+        import os
+        import sys
+
+        input_file = "${{ inputs.input-json }}"
+        output_file = "${{ inputs.output-text }}"
+
+        if not os.path.isfile(input_file):
+            print(f"Error: Input JSON file '{input_file}' not found.")
+            sys.exit(1)
+
+        with open(input_file, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        if not isinstance(data, dict):
+            print("Error: JSON file must contain a top-level object (key-value pairs).")
+            sys.exit(1)
+
+        # Determine maximum key length for alignment
+        max_key_length = max(len(k) for k in data.keys()) if data else 0
+
+        lines = []
+        for key, value in data.items():
+            value_str = str(value)  # Simple conversion for all types
+            padding = " " * (max_key_length - len(key) + 3)
+            lines.append(f"{key}{padding}: {value_str}")
+
+        with open(output_file, "w", encoding="utf-8") as f:
+            f.write("\n".join(lines) + "\n")
+
+        print(f"Converted '{input_file}' to human-readable text in '{output_file}' (keys in original order)")
+        with open(output_file, "r", encoding="utf-8") as f:
+            content = f.read()
+            numbered = "\n".join(f"{i+1:4d}: {line}" for i, line in enumerate(content.splitlines()))
+            print(numbered)
