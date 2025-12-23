@@ -17,15 +17,15 @@ runs:
         set -e
 
         # Optional: list releases for debugging
-        echo "Recent 10 releases:"
+        echo "*** Recent 10 releases:"
         gh release list --limit 10
 
         # Attempt to view the release; the not found error exit code.
-        echo "Looking up release ${{ inputs.release-tag }}:"
+        echo "*** Querying release ${{ inputs.release-tag }}:"
         output=$(gh release view "${{ inputs.release-tag }}" --json name,tagName,isPrerelease 2>&1 || true)
         echo "$output"
 
-        echo "Processing result:"
+        echo "*** Processing query results:"
 
         # CASE 1: Release doesn't exist.
         if [[ "$output" == *"release not found"* ]]; then
