@@ -1,0 +1,48 @@
+name: "Ensure No Conflicting Release"
+description: >-
+  Checks for an existing GitHub release with the specified tag.
+  If a pre-release exists, deletes it (including the associated tag).
+  If a stable (non pre-release) release exists, fails the workflow to protect it.
+  If no release exists, proceeds silently.
+inputs:
+  release-tag:
+    description: "The tag name of the release to check and potentially clean."
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Ensure no conflicting release for tag
+      shell: bash
+      run: |
+        set -e
+
+        # Optional: list releases for debugging
+        echo "Recent releases:"
+        gh release list --limit 10
+
+        # Attempt to view the release; the not found error exit code.
+        output=$(gh release view "${{ inputs.release-tag }}" --json name,tagName,isDraft,isImmutable,isPrerelease 2>&1 || true)
+        echo "$output"
+
+        # CASE 1: Release doesn't exist.
+        if [[ "$output" == *"release not found"* ]]; then
+          echo "Release ${{ inputs.release-tag }} does not exist – safe to continue."
+
+        # CASE 2: The release exists and has 'pre-release' status.
+        elif [[ "$(echo "$output" | jq -r '.isPrerelease')" == "true" ]]; then
+          echo "Pre-release ${{ inputs.release-tag }} exists – deleting it."
+          gh release delete "${{ inputs.release-tag }}" --yes --cleanup-tag
+
+        # CASE 3: The release exists and is stable (no 'pre-release' status)
+        elif [[ "$(echo "$output" | jq -r '.isPrerelease')" == "false" ]]; then
+          echo "Error: A stable release already exists for tag ${{ inputs.release-tag }} – aborting to protect it."
+          exit 1
+
+        # CASE 4: We encountered an error while looking up the release.
+        else
+          echo "Error: Unable to determine status of release ${{ inputs.release-tag }}."
+          exit 1
+        fi
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+
