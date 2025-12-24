@@ -19,7 +19,7 @@ runs:
   using: composite
   steps:
     - name: Ensure no conflicting release
-      uses: ./.github/actions/ensure-no-conflicting-release
+      uses: ${{ github.action_repository }}/.github/actions/ensure-no-conflicting-release@${{ github.action_ref }}
       with:
         release-tag: ${{inputs.release_tag}}
 
