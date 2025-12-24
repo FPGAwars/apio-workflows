@@ -18,6 +18,20 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Verify release body file
+      shell: bash
+      run: |
+        body_path="${{ inputs.body_path }}"
+
+        if [ -z "$body_path" ]; then
+          echo "No body_path provided. The release will have an empty body."
+        elif [ -f "$body_path" ]; then
+          echo "Body file '$body_path' exists and will be used."
+        else
+          echo "::error ::The specified body_path file '$body_path' does not exist."
+          exit 1
+        fi
+
     - name: Create pre-release
       uses: softprops/action-gh-release@v2.5.0
       with:
@@ -29,4 +43,3 @@ runs:
         preserve_order: true
         generate_release_notes: false
         files: ${{ inputs.files }}
-
