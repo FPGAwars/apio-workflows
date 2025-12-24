@@ -1,0 +1,32 @@
+name: Create GitHub Pre-release
+description: Creates a GitHub pre-release with the specified tag, optional body from a file path, and exactly the provided files
+
+inputs:
+  release_tag:
+    description: Tag name for the release (e.g. v1.2.3-rc.1)
+    required: true
+
+  body_path:
+    description: Path to a text file containing the release notes/body (optional). If not provided, the release body will be empty.
+    required: false
+    default: ""
+
+  files:
+    description: List of files to upload (newline-separated paths)
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Create pre-release
+      uses: softprops/action-gh-release@v2.5.0
+      with:
+        tag_name: ${{ inputs.release_tag }}
+        name: ${{ inputs.release_tag }}
+        body_path: ${{ inputs.body_path }}
+        prerelease: true
+        fail_on_unmatched_files: true
+        preserve_order: true
+        generate_release_notes: false
+        files: ${{ inputs.files }}
+
