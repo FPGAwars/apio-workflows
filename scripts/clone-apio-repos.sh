@@ -39,10 +39,7 @@ pushd "${TARGET_DIR}" || {
 
 # Clone each repository
 for repo in "${REPOS[@]}"; do
-  echo 
-  echo --- $repo
-  echo
-
+  printf "\n--- $repo\n\n"
   url="https://github.com/${repo}.git"
   echo "Cloning ${url} ..."
   git clone "${url}"
@@ -52,11 +49,8 @@ done
 # Back to parent dir.
 popd
 
-echo 
-echo ---
-echo
-
 # Show cloned sizes
+printf "\n---\n\n"
 echo "Local repos:"
 du -shc "${TARGET_DIR}"/*
 
@@ -67,5 +61,4 @@ echo "Archive:"
 tar -czf "${TARGET_DIR}.tar.gz" "${TARGET_DIR}/"
 du -sh "${TARGET_DIR}.tar.gz"
 
-echo
-echo "Done."
+printf "\nDone.\n"
