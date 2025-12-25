@@ -66,6 +66,14 @@ jobs:
             exit 1
           fi
 
+      - name: Prepare release text
+        run: |
+          cat  > RELEASE-BODY.txt <<EOF
+          Periodic Apio repos back.
+          EOF
+
+          cat -n RELEASE-BODY.txt
+
       - name: Cleanup old pre-releases
         uses: fpgawars/apio-workflows/.github/actions/cleanup-old-prereleases@main
 
@@ -78,5 +86,6 @@ jobs:
         uses: fpgawars/apio-workflows/.github/actions/create-pre-release@main
         with:
           release_tag: ${{ env.RELEASE_TAG }}
+          body_path: RELEASE-BODY.txt
           files: |
             ${{ env.ARCHIVE_FILE }}
