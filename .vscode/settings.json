@@ -9,6 +9,7 @@
         "isfile",
         "isinstance",
         "nullglob",
+        "sgpublic",
         "shopt",
         "softprops",
         "splitlines",
