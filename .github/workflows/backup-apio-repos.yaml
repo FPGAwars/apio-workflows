@@ -41,7 +41,7 @@ jobs:
 
       - name: Perform the backup
         run: |
-          scripts/clone-apio-repos.sh
+          scripts/backup-apio-repos.sh
           ls -al
 
       - name: Sanity check the archive size
@@ -58,7 +58,8 @@ jobs:
           # Get size in bytes (Linux-specific)
           size=$(stat -c %s "$file")
 
-          if [ "$size" -gt 104857600 ]; then
+          # Archive should be at least 150MB in size.
+          if [ "$size" -gt 150000000 ]; then
             # Success: do nothing and continue silently
             true
           else
@@ -69,7 +70,11 @@ jobs:
       - name: Prepare release text
         run: |
           cat  > RELEASE-BODY.txt <<EOF
-          Periodic Apio repos back.
+          Periodic Apio repos backup.
+
+          \`\`\`
+          $(du -shc apio-repos-20251224-10*/*)
+          \`\`\`
           EOF
 
           cat -n RELEASE-BODY.txt
