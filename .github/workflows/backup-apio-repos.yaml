@@ -73,7 +73,7 @@ jobs:
           Periodic Apio repos backup.
 
           \`\`\`
-          $(du -shc apio-repos-20251224-10*/*)
+          $(du -shc apio-repos-*/*)
           \`\`\`
           EOF
 
