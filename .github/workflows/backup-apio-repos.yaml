@@ -1,0 +1,96 @@
+name: backup-apio-repos
+
+on:
+  schedule:
+    # Runs weekly at midnight UTC on Sunday (the night between Saturday and Sunday)
+    - cron: "0 0 * * 0"
+
+  # Allow manual activations.
+  workflow_dispatch:
+
+permissions:
+  # Allow release creation
+  contents: write
+
+env:
+  # These are set latter in the workflow
+  RELEASE_TAG: ""
+  PACKAGE_TAG: ""
+  ARCHIVE_FILE: ""
+
+jobs:
+  backup-apio-repos:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Check out this repo to get access to ./scripts.
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+
+      - name: Get release and package tags
+        uses: fpgawars/apio-workflows/.github/actions/get-release-and-package-tags@main
+        with:
+          release-tag-var: RELEASE_TAG
+          package-tag-var: PACKAGE_TAG
+
+      - name: Determine package file name
+        run: |
+          package_name="apio-repos-backups-${PACKAGE_TAG}.tgz"
+          echo "PACKAGE_NAME=$package_name"
+          echo "PACKAGE_NAME=$package_name" >> $GITHUB_ENV
+
+      - name: Perform the backup
+        run: |
+          scripts/backup-apio-repos.sh
+          ls -al
+
+      - name: Sanity check the archive size
+        run: |
+          # Find the file matching the pattern
+          file=$(ls apio-repos-*.tar.gz 2>/dev/null | head -n 1)
+
+          # Stop if no file found
+          [ -z "$file" ] && echo "No archive file found" && exit 1
+
+          echo "ARCHIVE_FILE=$file"
+          echo "ARCHIVE_FILE=$file" >> "$GITHUB_ENV"
+
+          # Get size in bytes (Linux-specific)
+          size=$(stat -c %s "$file")
+
+          # Archive should be at least 150MB in size.
+          if [ "$size" -gt 150000000 ]; then
+            # Success: do nothing and continue silently
+            true
+          else
+            echo "$file is 100 MB or smaller"
+            exit 1
+          fi
+
+      - name: Prepare release text
+        run: |
+          cat  > RELEASE-BODY.txt <<EOF
+          Periodic Apio repos backup.
+
+          \`\`\`
+          $(du -shc apio-repos-*/* | expand -t 8)
+          \`\`\`
+          EOF
+
+          cat -n RELEASE-BODY.txt
+
+      - name: Cleanup old pre-releases
+        uses: fpgawars/apio-workflows/.github/actions/cleanup-old-prereleases@main
+
+      - name: Ensure no conflicting release (again)
+        uses: fpgawars/apio-workflows/.github/actions/ensure-no-conflicting-release@main
+        with:
+          release-tag: ${{ env.RELEASE_TAG }}
+
+      - name: Create GitHub pre-release
+        uses: fpgawars/apio-workflows/.github/actions/create-pre-release@main
+        with:
+          release_tag: ${{ env.RELEASE_TAG }}
+          body_path: RELEASE-BODY.txt
+          files: |
+            ${{ env.ARCHIVE_FILE }}
