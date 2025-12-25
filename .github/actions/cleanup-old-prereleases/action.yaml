@@ -20,6 +20,7 @@ runs:
       uses: sgpublic/delete-release-action@v1.2
       with:
         release-drop: false # Keep all stable releases
+        release-keep-count: 9999  # For extra safety
         pre-release-drop: true # Delete old pre-releases
         pre-release-keep-count: ${{ inputs.pre-release-keep-count }}
         pre-release-drop-tag: true # Delete tags of removed pre-releases
