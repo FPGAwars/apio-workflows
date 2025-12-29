@@ -1,13 +1,19 @@
 name: "Ensure No Conflicting Release"
 description: >-
   Checks for an existing GitHub release with the specified tag.
-  If a pre-release exists, deletes it (including the associated tag).
+  If a pre-release exists and just-check is false, deletes it (including the associated tag).
   If a stable (non pre-release) release exists, fails the workflow to protect it.
   If no release exists, proceeds silently.
+  The flag just-check is useful for early checks at the beginning of the workflows with
+  the final check just before creating the new pre-release.
 inputs:
   release-tag:
     description: "The tag name of the release to check and potentially clean."
     required: true
+  just-check:
+    description: "If true, only check for conflicts without deleting any pre-release."
+    required: false
+    default: "false"
 runs:
   using: "composite"
   steps:
@@ -17,6 +23,7 @@ runs:
         set -e
 
         release_tag="${{ inputs.release-tag }}"
+        just_check="${{ inputs.just-check }}"
 
         # Validate that release-tag is not empty
         if [[ -z "$release_tag" ]]; then
@@ -28,28 +35,32 @@ runs:
         echo "*** Recent 10 releases:"
         gh release list --limit 10
 
-        # Attempt to view the release; the not found error exit code.
+        # Attempt to view the release; capture output and allow not-found
         echo "*** Querying release $release_tag:"
         output=$(gh release view "$release_tag" --json name,tagName,isPrerelease 2>&1 || true)
         echo "$output"
 
         echo "*** Processing query results:"
 
-        # CASE 1: Release doesn't exist.
+        # CASE 1: Release doesn't exist
         if [[ "$output" == *"release not found"* ]]; then
           echo "Release $release_tag does not exist – safe to continue."
 
-        # CASE 2: The release exists and has 'pre-release' status.
+        # CASE 2: The release exists and is a pre-release
         elif [[ "$(echo "$output" | jq -r '.isPrerelease')" == "true" ]]; then
-          echo "Pre-release $release_tag exists – deleting it."
-          gh release delete "$release_tag" --yes --cleanup-tag
+          if [[ "$just_check" == "true" ]]; then
+            echo "Pre-release $release_tag exists – just-check enabled, skipping deletion."
+          else
+            echo "Pre-release $release_tag exists – deleting it."
+            gh release delete "$release_tag" --yes --cleanup-tag
+          fi
 
-        # CASE 3: The release exists and is stable (no 'pre-release' status)
+        # CASE 3: The release exists and is stable (non pre-release)
         elif [[ "$(echo "$output" | jq -r '.isPrerelease')" == "false" ]]; then
           echo "Error: A stable release already exists for tag $release_tag – aborting to protect it."
           exit 1
 
-        # CASE 4: We encountered an error while looking up the release.
+        # CASE 4: Unexpected error during lookup
         else
           echo "Error: Unable to determine status of release $release_tag."
           exit 1
