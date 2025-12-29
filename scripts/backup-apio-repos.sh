@@ -21,6 +21,9 @@ REPOS=(
 
   # Helpers
   "fpgawars/apio-workflows"
+
+  # Related repos
+  "fpgawars/icestudio"
 )
 
 # Generate timestamp with second resolution (e.g., 20251224-153045)
