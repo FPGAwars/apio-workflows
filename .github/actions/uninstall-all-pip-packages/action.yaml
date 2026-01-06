@@ -1,0 +1,42 @@
+# File: .github/actions/uninstall-all-pip-packages/action.yml
+name: 'Uninstall All Pip Packages'
+description: 'Completely uninstalls all pip packages in the current Python environment, including editable (-e) installations. Includes verification that the environment is clean afterward.'
+runs:
+  using: 'composite'
+  steps:
+    - name: Uninstall all pip packages
+      shell: bash
+      run: |
+        #!/bin/bash
+        set -euo pipefail
+
+        echo "Listing installed packages before uninstallation..."
+        pip freeze
+
+        # Extract package names:
+        # - For editable installs: capture the egg name (e.g., 'apio' from #egg=apio)
+        # - For normal installs: strip the version part
+        # - sort -u removes potential duplicates
+        package_list=$(pip freeze \
+          | sed -E 's/^-e .*#egg=([^-]+).*/\1/; s/==.*$//' \
+          | sort -u)
+
+        if [ -z "$package_list" ]; then
+            echo "No packages found to uninstall."
+        else
+            echo "Uninstalling the following packages:"
+            echo "$package_list"
+            # Use process substitution to feed the list as a "requirements file"
+            pip uninstall -y -r <(echo "$package_list")
+        fi
+
+        echo "Verifying that no packages remain..."
+        output=$(pip freeze)
+
+        if [ -z "$output" ]; then
+            echo "Assertion passed: pip freeze is empty. All packages successfully uninstalled."
+        else
+            echo "Assertion failed: Remaining packages detected:"
+            echo "$output"
+            exit 1
+        fi

@@ -400,3 +400,67 @@ jobs:
           fi
 
           echo "Scan outcome correct: $ACTUAL_OUTCOME (expected $EXPECTED_OUTCOME)."
+
+  # -- Test action uninstall-all-pip-packages
+  test-uninstall-all-pip-packages:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+
+      - name: Check the apio repo
+        uses: actions/checkout@v4
+        with:
+          repository: fpgawars/apio
+          path: apio-repo
+
+      # If using the system's python, we can't delete all the packages
+      # because of permissions. This is why we install our own version.
+      - name: Install python 3.14
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.14
+
+      - name: Install apio as a pip package
+        run: pip install -e apio-repo
+
+      - name: Verify some pip packages installed.
+        run: |
+          output=$(pip freeze)
+          echo "pip freeze: ${output}"
+          if [ -z "$output" ]; then
+              echo "Assertion failed: No packages detected (pip freeze is empty)."
+              exit 1
+          fi
+      - name: Verify apio package installed.
+        run: |
+          pip show apio
+
+      - name: Verify apio is alive
+        run: |
+          apio --version
+
+      - name: Uninstall all pip packages
+        uses: ./.github/actions/uninstall-all-pip-packages
+
+      - name: Check no packages.
+        run: |
+          output=$(pip freeze)
+          if [ -n "$output" ]; then
+              echo "Assertion failed: Remaining packages detected:"
+              echo "$output"
+              exit 1
+          fi
+
+      - name: Try to run apio (should fail)
+        id: run-apio
+        continue-on-error: true
+        run: |
+          apio --version
+
+      - name: Assert that previous step failed
+        uses: ./.github/actions/assert-step-failed
+        with:
+          outcome: ${{ steps.run-apio.outcome }}
+          error-message: "The previous step did not fail as expected"
