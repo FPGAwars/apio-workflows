@@ -7,7 +7,7 @@ runs:
     - name: Uninstall all pip packages
       shell: bash
       run: |
-        #!/bin/bash
+        set -x
         set -euo pipefail
 
         echo "Listing installed packages before uninstallation..."
