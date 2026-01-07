@@ -406,7 +406,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, macos-15-intel, ubuntu-22.04, windows-latest]
+        os: [macos-latest, macos-15-intel, ubuntu-latest, windows-latest]
 
     runs-on: ${{ matrix.os }}
 
