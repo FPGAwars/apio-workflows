@@ -410,6 +410,10 @@ jobs:
 
     runs-on: ${{ matrix.os }}
 
+    defaults:
+      run:
+        shell: bash
+
     steps:
       - name: Checkout this repo
         uses: actions/checkout@v4
