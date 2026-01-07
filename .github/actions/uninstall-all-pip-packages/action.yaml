@@ -26,8 +26,9 @@ runs:
         else
             echo "Uninstalling the following packages:"
             echo "$package_list"
-            # Use process substitution to feed the list as a "requirements file"
-            pip uninstall -y -r <(echo "$package_list")
+            # # Use process substitution to feed the list as a "requirements file"
+            # pip uninstall -y -r <(echo "$package_list")
+            echo "$package_list" | xargs pip uninstall -y
         fi
 
         echo "Verifying that no packages remain..."
