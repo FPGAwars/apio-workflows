@@ -561,3 +561,45 @@ jobs:
         run: |
           echo "expected ${{ matrix.release-tag }} to fail" >&2
           exit 1
+
+  test-check-release-is-stable-ok:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        release-tag:
+          - "2026-08-25"  # stable, latest
+          - "2026-07-10"  # stable, non latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check
+        uses: ./.github/actions/check-release-is-stable
+        with:
+          # Frozen repo, known to be stable.
+          release-repo: fpgawars/apio-examples
+          release-tag: ${{ matrix.release-tag }}
+
+  test-check-release-is-stable-not-ok:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        release-tag:
+          # TODO: Add a case for a draft.
+          - "2026-08-24"  # pre release
+          - "2026-07-11"  # Does not exist
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check
+        id: check
+        continue-on-error: true
+        uses: ./.github/actions/check-release-is-stable
+        with:
+          # Frozen repo, known to be pre-release.
+          release-repo: fpgawars/apio-examples
+          release-tag: ${{ matrix.release-tag }}
+      - name: Assert check failed
+        if: steps.check.outcome == 'success'
+        run: |
+          echo "Expected ${{ matrix.release-tag }} to fail" >&2
+          exit 1
