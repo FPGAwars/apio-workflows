@@ -41,7 +41,7 @@ runs:
         release_tag  = "${{ inputs.release_tag }}"
 
         new_value = f'{prefix}-{release_tag}'
-        new_line  = f'RELEASE_INFO = ״{new_value}״'
+        new_line  = f'RELEASE_INFO = "{new_value}"'
 
         content = target_file.read_text(encoding="utf-8")
 

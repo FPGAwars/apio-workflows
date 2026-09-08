@@ -300,7 +300,7 @@ jobs:
         run: |
           echo "APIO_VERSION: [$APIO_VERSION]"
           if [ "$APIO_VERSION" != "1.2.1" ]; then
-             echo "Error: Expected apio version '1.2.3'" >&2
+             echo "Error: Expected apio version '1.2.1'" >&2
              exit 1
           fi
 
@@ -473,3 +473,91 @@ jobs:
         with:
           outcome: ${{ steps.run-apio.outcome }}
           error-message: "The previous step did not fail as expected"
+
+  # -- Test action set-apio-release-info
+  test-set-apio-release-info:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+
+      - name: Dummy apio/__init__.py file
+        run: |
+          mkdir apio
+          cat << EOF > apio/__init__.py
+          # Comment 1
+          RELEASE_INFO = ""
+          # Comment 2
+          EOF
+
+          cat -n apio/__init__.py
+
+      - name: Set the release info
+        uses: ./.github/actions/set-apio-release-info
+        with:
+          repo_path: .
+          prefix: xyz
+          release_tag: 2026-09-07
+
+      - name: Create the expected file
+        run: |
+          cat << EOF > expected.py
+          # Comment 1
+          RELEASE_INFO = "xyz-2026-09-07"
+          # Comment 2
+          EOF
+
+          cat -n expected.py
+
+      - name: Compare the expected and the actual files
+        run: |
+          echo "Expected:"
+          cat expected.py
+          echo
+          echo "Actual:"
+          cat apio/__init__.py
+          echo
+          echo "Differences:"
+          diff expected.py apio/__init__.py
+
+  test-check-release-tag-ok:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        release-tag:
+          - "2020-01-01"
+          - "2026-08-20"
+          - "2100-01-01"
+    steps:
+      - uses: actions/checkout@v6
+      - name: Expect ok
+        uses: ./.github/actions/check-release-tag
+        with:
+          release-tag: ${{ matrix.release-tag }}
+
+  test-check-release-tag-not-ok:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        release-tag:
+          - "2019-12-31"
+          - "2100-01-02"
+          - "2026-13-40"
+          - "26-08-20"
+          - "hello"
+    steps:
+      - uses: actions/checkout@v6
+      - name: Expect fail
+        id: check
+        continue-on-error: true
+        uses: ./.github/actions/check-release-tag
+        with:
+          release-tag: ${{ matrix.release-tag }}
+      - name: Assert it failed
+        if: steps.check.outcome == 'success'
+        run: |
+          echo "expected ${{ matrix.release-tag }} to fail" >&2
+          exit 1
