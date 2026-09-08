@@ -570,7 +570,7 @@ jobs:
         uses: ./.github/actions/check-release-is-stable
         with:
           # Frozen repo, known to be stable.
-          repo-tag: fpgawars/apio-examples
+          release-repo: fpgawars/apio-examples
           release-tag: 2026-08-25
 
   test-check-release-is-stable-not-ok:
@@ -583,7 +583,7 @@ jobs:
         uses: ./.github/actions/check-release-is-stable
         with:
           # Frozen repo, known to be pre-release.
-          repo-tag: fpgawars/apio-examples
+          release-repo: fpgawars/apio-examples
           release-tag: 2026-08-24
       - name: Assert check failed
         if: steps.check.outcome == 'success'

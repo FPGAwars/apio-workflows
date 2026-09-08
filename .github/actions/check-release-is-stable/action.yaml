@@ -5,7 +5,7 @@ description: >-
   The action does not mutates the release, just checks.
 inputs:
   release-repo:
-    description: "The githup repo (e.g. fpgawars/apio) with the release."
+    description: "The github repo (e.g. fpgawars/apio) with the release."
     required: true
 
   release-tag:
