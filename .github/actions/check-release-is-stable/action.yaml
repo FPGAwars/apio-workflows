@@ -1,0 +1,52 @@
+name: "Check relese is stable"
+description: >-
+  Checks that the specified release is stable, that is, not a draft and not
+  a pre-release. The release may or may not be marked 'latest'.
+  The action does not mutates the release, just checks.
+inputs:
+  release-repo:
+    description: "The githup repo (e.g. fpgawars/apio) with the release.
+    required: true
+
+  release-tag:
+    description: "The tag of the release to check (e.g. 2026-09-03)."
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Check release is stable
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      run: |
+        set -e
+
+        release_repo="${{ inputs.release-repo }}"
+        release_tag="${{ inputs.release-tag }}"
+
+        # Check that release_repo is not empty
+        if [[ -z "$release_repo" ]]; then
+          echo "Error: The release-repo input is empty or not provided."
+          exit 1
+        fi
+
+        # Check that release_tag is not empty
+        if [[ -z "$release_tag" ]]; then
+          echo "Error: The release-tag input is empty or not provided."
+          exit 1
+        fi
+
+        echo "*** Querying release $release_repo $release_tag:"
+        output=$(gh release view "$release_tag" --repo "$release_repo" --json name,tagName,isPrerelease,isDraft 2>&1 || true)
+        echo "$output"
+
+        echo "*** Processing query results:"
+
+        if echo "$output" | jq -e '.isDraft == false and .isPrerelease == false' >/dev/null; then
+          echo "Release $release_repo $release_tag exists and is not a pre-release or draft."
+          exit 0
+        fi
+ 
+        echo "Release $release_repo $release_tag not found or is pre-release or draft"
+        exit 1
