@@ -568,7 +568,7 @@ jobs:
       fail-fast: false
       matrix:
         release-tag:
-          - "2026-08-25"  # stable, latest
+          - "2026-08-19"  # stable, latest
           - "2026-07-10"  # stable, non latest
     steps:
       - uses: actions/checkout@v6
