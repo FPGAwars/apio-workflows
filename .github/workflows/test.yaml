@@ -356,6 +356,30 @@ jobs:
              exit 1
           fi
 
+  # -- Test action get-normalized-repo-name
+  test-get-normalized-repo-name:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+        
+      - name: Normalize FPGAwars/apio
+        uses: ./.github/actions/get-normalized-repo-name
+        with:
+          repo: FPGAwars/apio
+          repo-var: REPO
+
+      - name: Check the normalized name
+        run: |
+          echo "REPO: [$REPO]"
+          EXPECTED_REPO="fpgawars/apio"
+          echo "EXPECTED_REPO: [$EXPECTED_REPO]"
+          if [ "$REPO" != "$EXPECTED_REPO" ]; then
+            echo "Error: Got an unexpected repo" >&2
+            exit 1
+          fi
+
   # -- Test scan-files-for-viruses
   test-scan-files-for-viruses:
     runs-on: ubuntu-latest
