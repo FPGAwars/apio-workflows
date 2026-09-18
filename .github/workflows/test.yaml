@@ -322,8 +322,19 @@ jobs:
         uses: ./.github/actions/get-repo-info
         with:
           repo-dir: apio-repo
+          repo-var: REPO
           branch-var: REPO_BRANCH
           commit-var: REPO_COMMIT
+
+      - name: Check extracted repo name
+        run: |
+          echo "REPO: [$REPO]"
+          EXPECTED_REPO="fpgawars/apio" 
+          echo "EXPECTED_REPO: [$EXPECTED_REPO]"
+          if [ "$REPO" != "$EXPECTED_REPO" ]; then
+             echo "Error: Got an unexpected repo" >&2
+             exit 1
+          fi
 
       - name: Check extracted repo branch
         run: |
@@ -568,8 +579,8 @@ jobs:
       fail-fast: false
       matrix:
         release-tag:
-          - "2026-08-19"  # stable, latest
-          - "2026-07-10"  # stable, non latest
+          - "2026-08-19" # stable, latest
+          - "2026-07-10" # stable, non latest
     steps:
       - uses: actions/checkout@v6
       - name: Check
@@ -586,8 +597,8 @@ jobs:
       matrix:
         release-tag:
           # TODO: Add a case for a draft.
-          - "2026-08-24"  # pre release
-          - "2026-07-11"  # Does not exist
+          - "2026-08-24" # pre release
+          - "2026-07-11" # Does not exist
     steps:
       - uses: actions/checkout@v6
       - name: Check

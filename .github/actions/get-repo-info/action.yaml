@@ -8,8 +8,11 @@ inputs:
   repo-dir:
     description: "The path to the repository directory (relative to the workspace)."
     required: true
+  repo-var:
+    description: "The name of the environment variable to set with the repo name (optional)."
+    required: false
   branch-var:
-    description: "The name of the environment variable to set with the current branch name (optional)."
+    description: "The name of the environment variable to set with the branch name (optional)."
     required: false
   commit-var:
     description: "The name of the environment variable to set with the full commit SHA (optional)."
@@ -33,6 +36,16 @@ runs:
           exit 1
         fi
 
+        # Get origin repo name normalized to lower case (e.g. "fpgawars/apio")
+        origin=$(git -C "$repo_dir" remote get-url origin)
+        if [[ "$origin" =~ ^https://github\.com/([^/]+)/([^/.]+)(\.git)?$ ]]; then
+          repo="${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
+        else
+          echo "Error: origin must be https://github.com/owner/repo[.git]: $origin"
+          exit 1
+        fi
+        repo=${repo,,}  # To lower case
+
         # Get current branch name (or "detached" if in detached HEAD state)
         branch=$(git -C "$repo_dir" rev-parse --abbrev-ref HEAD)
         if [[ "$branch" == "HEAD" ]]; then
@@ -41,6 +54,12 @@ runs:
 
         # Get full commit SHA
         commit=$(git -C "$repo_dir" rev-parse HEAD)
+
+        # Set repo variable if name is provided
+        if [[ -n "${{ inputs.repo-var }}" ]]; then
+          echo "${{ inputs.repo-var }}=$repo"
+          echo "${{ inputs.repo-var }}=$repo" >> "$GITHUB_ENV"
+        fi
 
         # Set branch variable if name is provided
         if [[ -n "${{ inputs.branch-var }}" ]]; then
