@@ -1,0 +1,22 @@
+name: "Get Normalized Repo Name"
+description: >-
+  Given a repo name such as "FPGAwars/apio", normalized it to lower case and assign
+  it to given env var.
+inputs:
+  repo:
+    description: "The unnormalized repo name, e.g. FPGAwars/apio."
+    required: true
+  repo-var:
+    description: "The name of the environment variable return the normalized repo name."
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Normalize the repo name
+      shell: bash
+      run: |
+        repo="${{ inputs.repo }}"
+        repo=${repo,,}  # To lower case
+        echo "${{ inputs.repo-var }}=$repo"
+        echo "${{ inputs.repo-var }}=$repo" >> "$GITHUB_ENV"
+

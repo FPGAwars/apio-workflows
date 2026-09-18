@@ -20,7 +20,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Get branch and commit from repository
+    - name: Get the info from the repository.
       shell: bash
       run: |
         repo_dir="${{ inputs.repo-dir }}"
