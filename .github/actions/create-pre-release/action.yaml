@@ -54,7 +54,7 @@ runs:
         fi
 
     - name: Create pre-release
-      uses: softprops/action-gh-release@v2.5.0
+      uses: softprops/action-gh-release@v3.0.3
       with:
         tag_name: ${{ inputs.release_tag }}
         name: ${{ inputs.release_tag }}

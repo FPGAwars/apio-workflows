@@ -1,29 +1,53 @@
 name: "Cleanup Old Pre-Releases"
 description: >-
   Cleanup old pre-releases while preserving all stable releases, drafts,
-  and the most recent pre-releases. By default, keeps the newest 5 pre-releases
-  (excluding the latest) and deletes associated tags.
+  and the KEEP most recent pre-releases. The value KEEP is a constant.
 
-inputs:
-  pre-release-keep-count:
-    description: >-
-      Number of newest pre-releases to keep (excluding the absolute latest).
-      Set to 0 to delete all pre-releases except the latest.
-    default: "5"
-    required: false
+# inputs:
+#   pre-release-keep-count:
+#     description: >-
+#       Number of newest pre-releases to keep (excluding the absolute latest).
+#       Set to 0 to delete all pre-releases except the latest.
+#     default: "5"
+#     required: false
 
 runs:
   using: "composite"
 
   steps:
+    # - name: Delete old pre-releases
+    #   uses: sgpublic/delete-release-action@v1.2
+    #   with:
+    #     release-drop: false # Keep all stable releases
+    #     release-keep-count: 9999  # For extra safety
+    #     pre-release-drop: true # Delete old pre-releases
+    #     pre-release-keep-count: ${{ inputs.pre-release-keep-count }}
+    #     pre-release-drop-tag: true # Delete tags of removed pre-releases
+    #     draft-drop: false # Keep all drafts
+    #   env:
+    #     GITHUB_TOKEN: ${{ github.token }}
+
     - name: Delete old pre-releases
-      uses: sgpublic/delete-release-action@v1.2
-      with:
-        release-drop: false # Keep all stable releases
-        release-keep-count: 9999  # For extra safety
-        pre-release-drop: true # Delete old pre-releases
-        pre-release-keep-count: ${{ inputs.pre-release-keep-count }}
-        pre-release-drop-tag: true # Delete tags of removed pre-releases
-        draft-drop: false # Keep all drafts
       env:
-        GITHUB_TOKEN: ${{ github.token }}
+        GH_TOKEN: ${{ github.token }}
+        KEEP: 5
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        mapfile -t tags < <(
+          gh release list --limit 1000 \
+            --json tagName,isPrerelease,isDraft,createdAt \
+            --jq '[.[] | select(.isPrerelease == true and .isDraft == false)]
+                  | sort_by(.createdAt) | reverse | .[].tagName'
+        )
+
+        for ((i = 0; i < ${#tags[@]}; i++)); do
+          if (( i < KEEP )); then
+            echo "*** Keeping pre-release ${tags[i]}"
+          else
+            echo "*** [dry-mode] Deleting pre-release ${tags[i]}"
+            # TODO: Enable this after testing
+            # gh release delete "${tags[i]}" --cleanup-tag --yes
+          fi
+        done
