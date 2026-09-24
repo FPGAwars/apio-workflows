@@ -46,8 +46,7 @@ runs:
           if (( i < KEEP )); then
             echo "*** Keeping pre-release ${tags[i]}"
           else
-            echo "*** [dry-mode] Deleting pre-release ${tags[i]}"
-            # TODO: Enable this after testing
-            # gh release delete "${tags[i]}" --cleanup-tag --yes
+            echo "*** Deleting pre-release ${tags[i]}"
+            gh release delete "${tags[i]}" --cleanup-tag --yes
           fi
         done
