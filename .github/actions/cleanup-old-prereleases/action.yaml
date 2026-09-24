@@ -37,9 +37,9 @@ runs:
 
         mapfile -t tags < <(
           gh release list --limit 1000 \
-            --json tagName,isPrerelease,isDraft,createdAt \
+            --json tagName,isPrerelease,isDraft,publishedAt \
             --jq '[.[] | select(.isPrerelease == true and .isDraft == false)]
-                  | sort_by(.createdAt) | reverse | .[].tagName'
+                  | sort_by(.publishedAt) | reverse | .[].tagName'
         )
 
         for ((i = 0; i < ${#tags[@]}; i++)); do
