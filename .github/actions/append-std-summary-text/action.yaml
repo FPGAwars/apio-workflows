@@ -1,0 +1,33 @@
+# Implementation of the append-std-summary-test action.
+
+name: "Append Std Summary Text"
+description: "Append to the summary text of the workflow the standard Apio release text."
+
+runs:
+  using: "composite"
+  steps:
+    - name: Append summary text
+      shell: bash
+      run: |
+        cat  > RUN-SUMMARY.txt <<EOF
+
+        ## Release guidelines
+
+        - These guidelines applies to all the Apio repositories that have a daily build workflow. This
+        include `fpgawars/apio`, `fpgawars/apio-vscode` and the Apio packages repos.
+
+        - Releases are created daily with a `pre-release` status and is
+        automatically deleted after 5 days, unless if set to be `stable`.
+
+        - To make a pre-release stable, edit it manually and change its status from `Pre-release`
+        to `None`.
+
+        - The stable release in each Apio repo that is currently the one recommended
+          for external users is marked as `latest`.
+
+        - The workflow [Apio Repos Janitor ](https://github.com/FPGAwars/apio/actions/workflows/apio-repos-janitor.yaml)
+          which runs periodically flags out in its job summary releases that should mark stable or latest
+          and completes successfully only if all the requirements are met.
+
+        EOF
+
