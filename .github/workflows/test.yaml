@@ -32,7 +32,7 @@ jobs:
 
     steps:
       - name: Checkout this repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Get release and package tags
         uses: ./.github/actions/get-release-and-package-tags
@@ -62,7 +62,7 @@ jobs:
 
     steps:
       - name: Checkout this repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Test platform match
         uses: ./.github/actions/check-platform
@@ -92,7 +92,7 @@ jobs:
 
     steps:
       - name: Checkout this repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Create actual json file
         run: |
@@ -138,7 +138,7 @@ jobs:
 
     steps:
       - name: Checkout this repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Create the input json file
         run: |
@@ -183,7 +183,7 @@ jobs:
 
     steps:
       - name: Checkout this repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Create the input json file
         run: |
@@ -239,7 +239,7 @@ jobs:
 
     steps:
       - name: Checkout this repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Create the input json file
         run: |
@@ -281,10 +281,10 @@ jobs:
 
     steps:
       - name: Checkout this repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Check apio repo at a known commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: fpgawars/apio
           ref: 8548ede2dc34a2e1067bb58ee3ef3ad59b9fc04a
@@ -310,10 +310,10 @@ jobs:
 
     steps:
       - name: Checkout this repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Check apio repo at a known commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: fpgawars/apio
           path: apio-repo
@@ -362,8 +362,8 @@ jobs:
 
     steps:
       - name: Checkout this repo
-        uses: actions/checkout@v4
-        
+        uses: actions/checkout@v6
+
       - name: Normalize FPGAwars/apio
         uses: ./.github/actions/get-normalized-repo-name
         with:
@@ -398,7 +398,7 @@ jobs:
 
     steps:
       - name: Checkout this repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Create a file with no virus
         run: |
@@ -451,10 +451,10 @@ jobs:
 
     steps:
       - name: Checkout this repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Check the apio repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: fpgawars/apio
           path: apio-repo
@@ -515,7 +515,7 @@ jobs:
 
     steps:
       - name: Checkout this repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Dummy apio/__init__.py file
         run: |
@@ -566,7 +566,9 @@ jobs:
           - "2026-08-20"
           - "2100-01-01"
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout this repo
+        uses: actions/checkout@v6
+
       - name: Expect ok
         uses: ./.github/actions/check-release-tag
         with:
@@ -584,7 +586,9 @@ jobs:
           - "26-08-20"
           - "hello"
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout this repo
+        uses: actions/checkout@v6
+
       - name: Expect fail
         id: check
         continue-on-error: true
@@ -606,7 +610,9 @@ jobs:
           - "2026-08-19" # stable, latest
           - "2026-07-10" # stable, non latest
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout this repo
+        uses: actions/checkout@v6
+
       - name: Check
         uses: ./.github/actions/check-release-is-stable
         with:
@@ -624,7 +630,9 @@ jobs:
           - "2026-08-24" # pre release
           - "2026-07-11" # Does not exist
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout this repo
+        uses: actions/checkout@v6
+
       - name: Check
         id: check
         continue-on-error: true
@@ -638,3 +646,12 @@ jobs:
         run: |
           echo "Expected ${{ matrix.release-tag }} to fail" >&2
           exit 1
+
+  test-append-std-summary-text:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v6
+
+      - name: Append std summary text
+        uses: ./.github/actions/append-std-summary-text
