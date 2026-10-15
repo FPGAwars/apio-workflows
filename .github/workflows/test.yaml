@@ -653,5 +653,17 @@ jobs:
       - name: Checkout this repo
         uses: actions/checkout@v6
 
+      - name: Seed test file
+        run: |
+          echo "-- pre-text-marker --" > _std-summary.txt
+          cat -n _std-summary.txt
+
       - name: Append std summary text
         uses: ./.github/actions/append-std-summary-text
+        with:
+          output-file: _std-summary.txt
+
+      - name: Verify
+        run: |
+          cat -n _std-summary.txt
+          grep guidelines _std-summary.txt

@@ -2,14 +2,18 @@
 
 name: "Append Std Summary Text"
 description: "Append to the summary text of the workflow the standard Apio release text."
-
+inputs:
+  output-file:
+    description: File to append to
+    required: true
+    type: string
 runs:
   using: "composite"
   steps:
     - name: Append summary text
       shell: bash
       run: |
-        cat  >> RUN-SUMMARY.txt <<EOF
+        cat  >> ${{ inputs.output-file }} <<EOF
 
         ## Release guidelines
 
