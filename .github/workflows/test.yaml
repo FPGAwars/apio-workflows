@@ -647,7 +647,7 @@ jobs:
           echo "Expected ${{ matrix.release-tag }} to fail" >&2
           exit 1
 
-  test-append-std-summary-text:
+  test-append-std-release-text:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout this repo
@@ -655,15 +655,15 @@ jobs:
 
       - name: Seed test file
         run: |
-          echo "-- pre-text-marker --" > _std-summary.txt
-          cat -n _std-summary.txt
+          echo "-- pre-text-marker --" > _fake-release.txt
+          cat -n _fake-release.txt
 
-      - name: Append std summary text
-        uses: ./.github/actions/append-std-summary-text
+      - name: Append std release text
+        uses: ./.github/actions/append-std-release-text
         with:
-          output-file: _std-summary.txt
+          output-file: _fake-release.txt
 
       - name: Verify
         run: |
-          cat -n _std-summary.txt
-          grep guidelines _std-summary.txt
+          cat -n _fake-release.txt
+          grep guidelines _fake-release.txt

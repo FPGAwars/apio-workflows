@@ -1,7 +1,7 @@
-# Implementation of the append-std-summary-test action.
+# Implementation of the append-std-release-text action.
 
-name: "Append Std Summary Text"
-description: "Append to the summary text of the workflow the standard Apio release text."
+name: "Append Standard Release Text"
+description: "Append to the release text of the workflow the standard Apio release text."
 inputs:
   output-file:
     description: File to append to
@@ -10,7 +10,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Append summary text
+    - name: Append release text
       shell: bash
       run: |
         cat  >> ${{ inputs.output-file }} <<EOF
